@@ -4,4 +4,5 @@ Temp/
 UserSettings/
 Assets/Scenes/Aug.unity
 Assets/Scenes/Aug.unity.meta
-.gitignore
+Assets/Scenes/Hippo.unity
+Assets/Scenes/Hippo.unity.meta
