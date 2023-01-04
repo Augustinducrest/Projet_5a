@@ -9,7 +9,7 @@ public class LSystemGenerator : MonoBehaviour
     public rule[] rules; 
     public string rootSentence;
     [Range(0,10)]
-    public int iterationLimit = 1;
+    public int iterationLimit = 1 ;
 
 
     private void Start()
@@ -37,6 +37,7 @@ public class LSystemGenerator : MonoBehaviour
 
         foreach ( var c in word)
         {
+            newWord.Append(c);
             processRulesRecursivelly(newWord,c,interationIndex);
         }
         return newWord.ToString();
