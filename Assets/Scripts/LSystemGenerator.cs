@@ -1,60 +1,73 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿/*
+	Made by Sunny Valle Studio
+	(https://svstudio.itch.io)
+*/
 using System.Text;
-
-public class LSystemGenerator : MonoBehaviour
-{
-
-    public rule[] rules; 
-    public string rootSentence;
-    [Range(0,10)]
-    public int iterationLimit = 1 ;
+using UnityEngine;
 
 
-    private void Start()
-    {
-        Debug.Log(Generatesentence());
-    }
+	public class LSystemGenerator : MonoBehaviour
+	{
+		public Rule[] rules;
+		public string rootSentence;
+		[Range(0,10)]
+		public int iterationLimit = 1;
 
-    public string Generatesentence(string word = null)
-    {
-        if(word ==null)
-        {
-            word = rootSentence;
-        }
-        return GrowRecursive(word);
-        
-    }
+		public bool randomIgnoreRuleModifier = true;
+		[Range(0, 1)]
+		public float chanceToIgnoreRule = 0.3f;
 
-    private string  GrowRecursive(string word,int interationIndex = 0)
-    {
-        if(interationIndex >= iterationLimit)
-        {
-            return word; 
-        }
-        StringBuilder newWord = new StringBuilder();
-
-        foreach ( var c in word)
-        {
-            newWord.Append(c);
-            processRulesRecursivelly(newWord,c,interationIndex);
-        }
-        return newWord.ToString();
-
-    }
-
-    private void processRulesRecursivelly(StringBuilder newWord,char c, int interationIndex)
-    {
-        foreach (var rule in rules)
-        {
-            if( rule.letter == c.ToString())
-            {
-                newWord.Append(GrowRecursive(rule.GetResult(), interationIndex + 1));
-            }
-        }
-    }
+       
 
 
+		private void Start()
+		{
+			Debug.Log(GenerateSentence());
+		}
 
-}
+		public string GenerateSentence(string word = null)
+		{
+			if(word == null)
+			{
+				word = rootSentence;
+			}
+			return GrowRecursive(word);
+		}
+
+		private string GrowRecursive(string word, int iterationIndex = 0)
+		{
+			if(iterationIndex >= iterationLimit)
+			{
+				return word;
+			}
+			StringBuilder newWord = new StringBuilder();
+
+			foreach (var c in word)
+			{
+				newWord.Append(c);
+				ProcessRulesRecursivelly(newWord, c, iterationIndex);
+			}
+
+			return newWord.ToString();
+		}
+
+		private void ProcessRulesRecursivelly(StringBuilder newWord, char c, int iterationIndex)
+		{
+			foreach (var rule in rules)
+			{
+				if(rule.letter == c.ToString())
+				{
+					if (randomIgnoreRuleModifier && iterationIndex > 1)
+					{
+						if(Random.value < chanceToIgnoreRule)
+						{
+							return;
+						}
+					}
+					newWord.Append(GrowRecursive(rule.GetResult(), iterationIndex + 1));
+				}
+				
+			}
+		}
+	}
+

@@ -2,7 +2,12 @@ Library/
 Logs/
 Temp/
 UserSettings/
+.vscode/
+obj/
+
 Assets/Scenes/Aug.unity
 Assets/Scenes/Aug.unity.meta
 Assets/Scenes/Hippo.unity
 Assets/Scenes/Hippo.unity.meta
+/Assembly-CSharp.csproj
+/Projet_5a.sln
