@@ -9,6 +9,8 @@ using UnityEngine;
 	{
 		public Vector3 position, direction;
 		public int length;
+
+		public int angle;
 	}
 
 
