@@ -36,7 +36,7 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Rules\rule.cs" />
+     <Compile Include="Assets\Scripts\Rules\Rule.cs" />
      <Compile Include="Assets\Scripts\AgentParameters.cs" />
      <Compile Include="Assets\Scripts\LSystemGenerator.cs" />
      <Compile Include="Assets\Scripts\SimpleVisualizer.cs" />

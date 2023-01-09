@@ -24,7 +24,8 @@ public class SimpleVisualizer : MonoBehaviour
     public int maxDist = 8;
 
     private float r =3.0f;
-    int tolerance = 25;
+    public int tolerance = 50;
+    int anglevar = 180;
 
     public int Length
     {
@@ -44,9 +45,6 @@ public class SimpleVisualizer : MonoBehaviour
 
     private void Start()
     {
-        // GameObject line = new GameObject("line");
-        // line.transform.parent = transform;
-
         var sequence = lsystem.Generatesentence();
         VisualizeSequence(sequence);
     }
@@ -59,15 +57,12 @@ public class SimpleVisualizer : MonoBehaviour
         Vector3 direction = Vector3.forward;
         Vector3 tempPosition = Vector3.zero;
 
+        Stack<GameObject> GO = new Stack<GameObject>();
+        GameObject currentGO = new GameObject("Lines");
+        GameObject spheres = new GameObject("Spheres");
+
         positions.Add(currentPosition);
 
-        //arborescence
-
-        Stack<GameObject> Tree = new Stack<GameObject>();
-        GameObject currentGO = transform.gameObject;
-
-
-        
 
         foreach (var letter in sequence)
         {
@@ -80,10 +75,10 @@ public class SimpleVisualizer : MonoBehaviour
                     {
                         position = currentPosition,
                         direction = direction,
-                        length = Length
+                        length = Length,
+                        angle = 180
                     });
-                    //Graph
-                    Tree.Push(currentGO);
+                    GO.Push(currentGO);
                     break;
 
                 case EncodingLetters.load:
@@ -94,15 +89,8 @@ public class SimpleVisualizer : MonoBehaviour
                         currentPosition = agentParameter.position;
                         direction = agentParameter.direction;
                         Length = agentParameter.length;
-                    }
-                    else
-                    {
-                        throw new System.Exception("Dont have saved point in our stack");
-                    }
-                    //Graph
-                    if (Tree.Count > 0)
-                    {
-                        currentGO = Tree.Pop();
+                        anglevar = agentParameter.angle;
+                        currentGO = GO.Pop();
                     }
                     else
                     {
@@ -136,16 +124,17 @@ public class SimpleVisualizer : MonoBehaviour
                     break;
 
                 case EncodingLetters.turn:
-                    //si 1ere branche présente ou non
-                    float rot = 0;
-
-                    if (currentGO.transform.childCount>0){
-                        rot = GiveAngle(angle,tolerance);
-                    }
-                    else
-                    {
+                    int rot = 0;
+                    if (anglevar == 180){ //aucune branche présente
                         rot = RandomValueFromRanges(new Range(-180+tolerance,180-tolerance));
                     }
+                    else // branche présente
+                    {
+                        rot = GiveAngle(anglevar,tolerance);
+                    }
+                    var agent = savePoints.Pop();
+                    agent.angle = rot;
+                    savePoints.Push(agent);
                     direction = Quaternion.AngleAxis(rot, Vector3.up) * direction;
                     break;
 
@@ -156,7 +145,8 @@ public class SimpleVisualizer : MonoBehaviour
 
         foreach (var position in positions)
         {
-            Instantiate(prefab, position, Quaternion.identity);
+            GameObject sph = Instantiate(prefab, position, Quaternion.identity);
+            sph.transform.parent = spheres.transform;
         }
 
     }
