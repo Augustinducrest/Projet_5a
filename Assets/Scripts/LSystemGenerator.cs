@@ -22,10 +22,10 @@ using UnityEngine;
 
 		private void Start()
 		{
-			Debug.Log(GenerateSentence());
+			Debug.Log(Generatesentence());
 		}
 
-		public string GenerateSentence(string word = null)
+		public string Generatesentence(string word = null)
 		{
 			if(word == null)
 			{
