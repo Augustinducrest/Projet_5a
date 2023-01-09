@@ -107,7 +107,8 @@ using UnityEngine;
 
                         Segment seg = new Segment(currentPosition,tempPosition);
                         Vector3 pInterseg =DetectIntersection(seg,tempPosition);
-                        
+
+                        GameObject line = new GameObject(); 
                         if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
                         {
                             //print(pInterseg +"seg:" + seg.point1 + seg.point2);
@@ -116,13 +117,13 @@ using UnityEngine;
                         Vector3 detectedpoint = DetectClosestPoint(currentPosition);
                         if ( currentPosition == detectedpoint)
                         {
-                            GameObject line =  DrawLine(tempPosition, currentPosition, Color.red);
+                            line =  DrawLine(tempPosition, currentPosition, Color.red);
                             positions.Add(currentPosition);
                         }
                         else
                         {
                             currentPosition = detectedpoint;
-                            GameObject line =  DrawLine(tempPosition, currentPosition, Color.red);
+                            line =  DrawLine(tempPosition, currentPosition, Color.red);
                         }
                         line.transform.parent = currentGO.transform;
                         currentGO = line;
