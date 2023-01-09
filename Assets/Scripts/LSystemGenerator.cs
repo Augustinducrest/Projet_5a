@@ -10,7 +10,7 @@ using UnityEngine;
 	{
 		public Rule[] rules;
 		public string rootSentence;
-		[Range(0,10)]
+		[Range(0,20)]
 		public int iterationLimit = 1;
 
 		public bool randomIgnoreRuleModifier = true;
