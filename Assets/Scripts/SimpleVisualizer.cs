@@ -7,28 +7,37 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-    public class SimpleVisualizer : MonoBehaviour
-    {
-        public LSystemGenerator lsystem;
-        List<Vector3> positions = new List<Vector3>();
-        List<Segment> segments = new List<Segment>();
-        public GameObject prefab;
-        public Material lineMaterial;
+public class SimpleVisualizer : MonoBehaviour
+{
+    //public
+    [Header("Objects")]
+    public LSystemGenerator lsystem;
+    public GameObject prefab;
+    public Material lineMaterial;
 
-        private int length = 8;
-        public float angle = 90;
+    [Header("Parameters")]
 
-    public float minAngle =-90.0f;
-    public float maxAngle = 90.0f;
+    public int angle = 90;
 
-    public int minDist = 5;
-    public int maxDist = 8;
-
-    private float r =3.0f;
+    [Range(0,120)]
     public int tolerance = 50;
-    int anglevar = 180;
+     [Range(0.0f,30.0f)]  
+    public float length = 8;
+    [Range(0.0f,2.0f)]
+    public float att_length = 1.0f;
+    [Range(0.0f,2.0f)]
+    public float width = 1;
+    [Range(0.0f,2.0f)]
+    public float att_width = 1.0f;
 
-    public int Length
+
+    //private
+    List<Vector3> positions = new List<Vector3>();
+    List<Segment> segments = new List<Segment>();
+    private float r =3.0f;
+    private int anglevar = 180;
+
+    public float Length
     {
         get
         {
@@ -71,25 +80,26 @@ using UnityEngine;
             switch (encoding)
             {
                 case EncodingLetters.save:
-
                     savePoints.Push(new AgentParameters
                     {
                         position = currentPosition,
                         direction = direction,
                         length = Length,
+                        width = width,
                         angle = 180
                     });
                     GO.Push(currentGO);
                     break;
 
                 case EncodingLetters.load:
-
+                    
                     if (savePoints.Count > 0)
                     {
                         var agentParameter = savePoints.Pop();
                         currentPosition = agentParameter.position;
                         direction = agentParameter.direction;
                         Length = agentParameter.length;
+                        width = agentParameter.width;
                         anglevar = agentParameter.angle;
                         currentGO = GO.Pop();
                     }
@@ -99,43 +109,43 @@ using UnityEngine;
                     }
                     break;
 
-                    case EncodingLetters.draw:
-                        int dist = UnityEngine.Random.Range(minDist,maxDist);
-                        length = dist;
-                        tempPosition = currentPosition;
-                        currentPosition += direction * length;
+                case EncodingLetters.draw:
+                    //int dist = UnityEngine.Random.Range(minDist,maxDist);
+                    length = Length;
+                    tempPosition = currentPosition;
+                    currentPosition += direction * length;
 
-                        Segment seg = new Segment(currentPosition,tempPosition);
-                        Vector3 pInterseg =DetectIntersection(seg,tempPosition);
+                    Segment seg = new Segment(currentPosition,tempPosition);
+                    Vector3 pInterseg =DetectIntersection(seg,tempPosition);
 
-                        GameObject line = new GameObject(); 
-                        if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
-                        {
-                            //print(pInterseg +"seg:" + seg.point1 + seg.point2);
-                            currentPosition = pInterseg;
-                        } 
-                        Vector3 detectedpoint = DetectClosestPoint(currentPosition);
-                        if ( currentPosition == detectedpoint)
-                        {
-                            line =  DrawLine(tempPosition, currentPosition, Color.red);
-                            positions.Add(currentPosition);
-                        }
-                        else
-                        {
-                            currentPosition = detectedpoint;
-                            line =  DrawLine(tempPosition, currentPosition, Color.red);
-                        }
-                        line.transform.parent = currentGO.transform;
-                        currentGO = line;
-                        break;
+                    GameObject line = new GameObject("line"); 
+                    if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
+                    {
+                        //print(pInterseg +"seg:" + seg.point1 + seg.point2);
+                        currentPosition = pInterseg;
+                    } 
+                    Vector3 detectedpoint = DetectClosestPoint(currentPosition);
+                    if ( currentPosition == detectedpoint)
+                    {
+                        DrawLine(line,tempPosition, currentPosition, Color.red);
+                        positions.Add(currentPosition);
+                    }
+                    else
+                    {
+                        currentPosition = detectedpoint;
+                        DrawLine(line,tempPosition, currentPosition, Color.red);
+                    }
+                    width/=att_width;
+                    Length/=att_length;
+                    line.transform.parent = currentGO.transform;
+                    currentGO = line;
+                    break;
 
                 case EncodingLetters.turnRight:
-
                     direction = Quaternion.AngleAxis(angle, Vector3.up) * direction;
                     break;
 
                 case EncodingLetters.turnLeft:
-
                     direction = Quaternion.AngleAxis(-angle, Vector3.up) * direction;
                     break;
 
@@ -160,7 +170,7 @@ using UnityEngine;
             }
             foreach (var position in positions)
             {
-                Instantiate(prefab, position, Quaternion.identity);
+                Instantiate(prefab, position, Quaternion.identity).transform.parent = spheres.transform;
             }
         }
 
@@ -251,21 +261,19 @@ using UnityEngine;
             }
         }
 
-        private GameObject DrawLine(Vector3 start, Vector3 end, Color color)
+        private void DrawLine(GameObject line, Vector3 start, Vector3 end, Color color)
         {
-            GameObject line = new GameObject("line");
             line.transform.position = start;
             var lineRenderer = line.AddComponent<LineRenderer>();
             lineRenderer.material = lineMaterial;
             lineRenderer.startColor = color;
             lineRenderer.endColor = color;
-            lineRenderer.startWidth = 0.2f;
-            lineRenderer.endWidth = 0.2f;
+            lineRenderer.startWidth = width;
+            lineRenderer.endWidth = width;
             lineRenderer.SetPosition(0,end);
             lineRenderer.SetPosition(1,start);
             Segment seg = new Segment(start,end);
             segments.Add(seg);
-            return line;
         }
 
     public enum EncodingLetters
@@ -309,20 +317,17 @@ using UnityEngine;
         throw new Exception("This should never happen");
     }
 
-    private int GiveAngle(int angle, int t){
+    private int GiveAngle(int anglem, int t){
 
-        if (angle< -180 + 2*t){
-            Range[] rg = new Range[]{new Range(angle+t,180-t)};
-            return RandomValueFromRanges(rg);
+        if (anglem< -180 + 2*t){
+            return RandomValueFromRanges(new Range[]{new Range(anglem+t,180-t)});
         }
-        else if (angle > 180 - 2*t){
-            Range[] rg = new Range[]{new Range(-180+t,angle-t)};
-            return RandomValueFromRanges(rg);
+        else if (anglem > 180 - 2*t){
+            return RandomValueFromRanges(new Range[]{new Range(-180+t,anglem-t)});
         }
         else
         {
-            Range[] rg = new Range[]{new Range(angle+t,180-t),new Range(angle+t,180-t)};
-            return RandomValueFromRanges(rg);
+            return RandomValueFromRanges(new Range[]{new Range(anglem+t,180-t),new Range(anglem+t,180-t)});
         }
         
     }

@@ -8,9 +8,10 @@ using UnityEngine;
 	public class AgentParameters
 	{
 		public Vector3 position, direction;
-		public int length;
+		public float length;
 
 		public int angle;
+		public float width;
 	}
 
 
