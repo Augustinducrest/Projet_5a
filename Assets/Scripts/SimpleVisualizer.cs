@@ -10,6 +10,8 @@ using UnityEngine;
     public class SimpleVisualizer : MonoBehaviour
     {
         public LSystemGenerator lsystem;
+        public RoadHelper roadHelper;
+
         List<Vector3> positions = new List<Vector3>();
         List<Segment> segments = new List<Segment>();
         public GameObject prefab;
@@ -24,7 +26,7 @@ using UnityEngine;
     public int minDist = 5;
     public int maxDist = 8;
 
-    private float r =3.0f;
+    public float r =3.0f;
     public int tolerance = 50;
     int anglevar = 180;
 
@@ -118,12 +120,16 @@ using UnityEngine;
                         if ( currentPosition == detectedpoint)
                         {
                             line =  DrawLine(tempPosition, currentPosition, Color.red);
+                            roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
+                            //print(Vector3.Distance(tempPosition,currentPosition));
                             positions.Add(currentPosition);
                         }
                         else
                         {
                             currentPosition = detectedpoint;
                             line =  DrawLine(tempPosition, currentPosition, Color.red);
+                            roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
+                            //print(Vector3.Distance(tempPosition,currentPosition));
                         }
                         line.transform.parent = currentGO.transform;
                         currentGO = line;
@@ -166,7 +172,7 @@ using UnityEngine;
 
         Vector3 DetectIntersection(Segment seg1,Vector3 p1)
         {
-            print("seg:"+ seg1.point1 + seg1.point2);
+            //print("seg:"+ seg1.point1 + seg1.point2);
             Vector3 A = seg1.point1;
             Vector3 B = seg1.point2;
             Vector3 pointInter = new Vector3(0,0,0) ;
@@ -183,10 +189,8 @@ using UnityEngine;
                     {
                         minpointInterDist = d;
                         pointInter = p;
-                        print(d + "p" + pointInter );
                     }
-                }
-                
+                }   
             }
             return pointInter;
         }
@@ -265,6 +269,8 @@ using UnityEngine;
             lineRenderer.SetPosition(1,start);
             Segment seg = new Segment(start,end);
             segments.Add(seg);
+
+
             return line;
         }
 

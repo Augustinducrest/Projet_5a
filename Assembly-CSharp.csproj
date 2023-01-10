@@ -41,6 +41,9 @@
      <Compile Include="Assets\Scripts\AgentParameters.cs" />
      <Compile Include="Assets\Scripts\LSystemGenerator.cs" />
      <Compile Include="Assets\Scripts\SimpleVisualizer.cs" />
+     <Compile Include="Assets\Scripts\RoadHelper.cs" />
+     <None Include="Assets\KajamansRoads\FileNamesDescription.txt" />
+     <None Include="Assets\KajamansRoads\Free\ReadMe.txt" />
     <Reference Include="UnityEngine">
         <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
