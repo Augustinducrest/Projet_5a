@@ -14,6 +14,7 @@ public class SimpleVisualizer : MonoBehaviour
     public LSystemGenerator lsystem;
     public GameObject prefab;
     public Material lineMaterial;
+    public RoadHelper roadHelper;
 
     [Header("Parameters")]
 
@@ -38,7 +39,6 @@ public class SimpleVisualizer : MonoBehaviour
     //private
     List<Vector3> positions = new List<Vector3>();
     List<Segment> segments = new List<Segment>();
-    private float r =3.0f;
     private int anglevar = 180;
 
     public float Length
