@@ -10,16 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a6bc396850a9add4bb12b6c40b1c044b, type: 3}
-  m_Name: rule1
+  m_Name: mainRoadRule
   m_EditorClassIdentifier: 
-  letter: F
+  letter: M
   results:
-  - '[+F][-F]'
-  - '[-F][F]'
-  - '[RF][+F]'
-  - '[-F][RF]'
-  - '[-F]'
-  - '[+F]'
-  - '[F]'
-  - '[F][+F]'
+  - '[RF][M][RF]'
+  - '[RM][F]'
+  - '[-F][+M]'
+  - '[-M][F]'
+  - '[-F][M][+F]'
+  - '[M][+F]'
+  - '[-F][M]'
   randomResult: 1

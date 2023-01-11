@@ -40,8 +40,9 @@
      <Compile Include="Assets\Scripts\Rules\Rule.cs" />
      <Compile Include="Assets\Scripts\AgentParameters.cs" />
      <Compile Include="Assets\Scripts\LSystemGenerator.cs" />
-     <Compile Include="Assets\Scripts\SimpleVisualizer.cs" />
      <Compile Include="Assets\Scripts\RoadHelper.cs" />
+     <Compile Include="Assets\Scripts\SimpleVisualizer.cs" />
+     <Compile Include="Assets\Scripts\BuildingPlacer.cs" />
      <None Include="Assets\KajamansRoads\FileNamesDescription.txt" />
      <None Include="Assets\KajamansRoads\Free\ReadMe.txt" />
     <Reference Include="UnityEngine">

@@ -14,6 +14,7 @@ public class SimpleVisualizer : MonoBehaviour
     public LSystemGenerator lsystem;
     public GameObject prefab;
     public Material lineMaterial;
+    public Material mainLineMaterial;
     public RoadHelper roadHelper;
 
     [Header("Parameters")]
@@ -34,6 +35,7 @@ public class SimpleVisualizer : MonoBehaviour
     public float width = 1;
     [Range(0.0f,2.0f)]
     public float att_width = 1.0f;
+    public float mainLenght = 10;
 
 
     //private
@@ -113,40 +115,66 @@ public class SimpleVisualizer : MonoBehaviour
                     break;
 
                 case EncodingLetters.draw:
-                    //int dist = UnityEngine.Random.Range(minDist,maxDist);
-                    length = Length;
+                    GameObject line = new GameObject("line"); 
+
+                    int dist = UnityEngine.Random.Range(minDist,maxDist);
+                    length = dist;
                     tempPosition = currentPosition;
                     currentPosition += direction * length;
 
                     Segment seg = new Segment(currentPosition,tempPosition);
                     Vector3 pInterseg =DetectIntersection(seg,tempPosition);
 
-                    GameObject line = new GameObject("line"); 
                     if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
                     {
-                        //print(pInterseg +"seg:" + seg.point1 + seg.point2);
                         currentPosition = pInterseg;
                     } 
                     Vector3 detectedpoint = DetectClosestPoint(currentPosition);
-                    if ( currentPosition == detectedpoint)
+                    int nbrClosePoint = CountNumberClosePoint(currentPosition);
+                    if (nbrClosePoint <4 )
                     {
-                        DrawLine(line,tempPosition, currentPosition, Color.red);
+                        if ( currentPosition == detectedpoint)
+                        {
+                            DrawLine(line,tempPosition, currentPosition, Color.red);
                             roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                            //print(Vector3.Distance(tempPosition,currentPosition));
-                        positions.Add(currentPosition);
-                    }
-                    else
-                    {
-                        currentPosition = detectedpoint;
-                        DrawLine(line,tempPosition, currentPosition, Color.red);
+                            positions.Add(currentPosition);
+                        }
+                        else
+                        {
+                            currentPosition = detectedpoint;
+                            DrawLine(line,tempPosition, currentPosition, Color.red);
                             roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                            //print(Vector3.Distance(tempPosition,currentPosition));
+                        }
                     }
+                    
                     width/=att_width;
                     Length/=att_length;
                     line.transform.parent = currentGO.transform;
                     currentGO = line;
                     break;
+
+                case EncodingLetters.mainRoad:
+
+                    tempPosition = currentPosition;
+                    currentPosition += direction * mainLenght;
+
+                    Segment mainSeg = new Segment(currentPosition,tempPosition);
+                    Vector3 pIntersegmain =DetectIntersection(mainSeg,tempPosition);
+                    if (pIntersegmain != new Vector3(0,0,0) && pIntersegmain !=  tempPosition )
+                    {
+                        //print(pInterseg +"seg:" + seg.point1 + seg.point2);
+                        currentPosition = pIntersegmain;
+                    }
+
+                    GameObject mainLine = new GameObject("line"); 
+                    DrawLine(mainLine,tempPosition, currentPosition, Color.blue);
+                    roadHelper.PlaceMainStreetPositions(tempPosition,currentPosition);
+                    positions.Add(currentPosition);
+
+                    mainLine.transform.parent = currentGO.transform;
+                    currentGO = mainLine;
+                    break;
+
 
                 case EncodingLetters.turnRight:
                     direction = Quaternion.AngleAxis(angle, Vector3.up) * direction;
@@ -242,6 +270,20 @@ public class SimpleVisualizer : MonoBehaviour
             }
         }
 
+
+        int CountNumberClosePoint(Vector3 pos)
+        {
+            int n = 0;
+            foreach( var point in positions)
+            {
+                float dist = Vector3.Distance(pos , point);
+                if( dist < r )
+                {
+                    n += 1;
+                }
+            }
+            return n; 
+        }
         Vector3 DetectClosestPoint(Vector3 pos)
         {
             Vector3 closestPoint =new Vector3(0,0,0);
@@ -270,9 +312,18 @@ public class SimpleVisualizer : MonoBehaviour
         {
             line.transform.position = start;
             var lineRenderer = line.AddComponent<LineRenderer>();
-            lineRenderer.material = lineMaterial;
-            lineRenderer.startColor = color;
-            lineRenderer.endColor = color;
+            if (color == Color.red)
+            {
+                lineRenderer.material = lineMaterial;
+                lineRenderer.startColor = color;
+                lineRenderer.endColor = color;
+            }
+            else
+            {
+                lineRenderer.material = mainLineMaterial;
+            }
+            
+            
             lineRenderer.startWidth = width;
             lineRenderer.endWidth = width;
             lineRenderer.SetPosition(0,end);
@@ -289,7 +340,8 @@ public class SimpleVisualizer : MonoBehaviour
         draw = 'F',
         turnRight = '+',
         turnLeft = '-',
-        turn = 'R'
+        turn = 'R',
+        mainRoad ='M'
     }
 
     //Range Angles
