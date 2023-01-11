@@ -28,7 +28,6 @@ using UnityEngine;
 			Quaternion rot  = Quaternion.FromToRotation(new Vector3(0,0,1) ,  endPosition - startPosition);
 			rot.x =0;
 			road.transform.rotation = rot;
-			
 			road.GetComponent<Renderer>().material.mainTextureScale = new Vector2(1,d); 
 			//print("dist: " +d);
 		}
