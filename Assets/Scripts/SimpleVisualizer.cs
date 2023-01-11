@@ -20,18 +20,17 @@ public class SimpleVisualizer : MonoBehaviour
 
     public int angle = 90;
 
-    public int minDist = 5;
-    public int maxDist = 8;
-
     public float r =3.0f;
     [Range(0,120)]
     public int tolerance = 50;
+    [Range(0,45)]
+    public int interv_angle = 50;
      [Range(0.0f,30.0f)]  
     public float length = 8;
     [Range(0.0f,2.0f)]
     public float att_length = 1.0f;
     [Range(0.0f,2.0f)]
-    public float width = 1;
+    public float width = 1.0f;
     [Range(0.0f,2.0f)]
     public float att_width = 1.0f;
 
@@ -113,7 +112,6 @@ public class SimpleVisualizer : MonoBehaviour
                     break;
 
                 case EncodingLetters.draw:
-                    //int dist = UnityEngine.Random.Range(minDist,maxDist);
                     length = Length;
                     tempPosition = currentPosition;
                     currentPosition += direction * length;
@@ -124,28 +122,27 @@ public class SimpleVisualizer : MonoBehaviour
                     GameObject line = new GameObject("line"); 
                     if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
                     {
-                        //print(pInterseg +"seg:" + seg.point1 + seg.point2);
                         currentPosition = pInterseg;
                     } 
                     Vector3 detectedpoint = DetectClosestPoint(currentPosition);
                     if ( currentPosition == detectedpoint)
                     {
                         DrawLine(line,tempPosition, currentPosition, Color.red);
-                            roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                            //print(Vector3.Distance(tempPosition,currentPosition));
+                        //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
                         positions.Add(currentPosition);
                     }
                     else
                     {
                         currentPosition = detectedpoint;
                         DrawLine(line,tempPosition, currentPosition, Color.red);
-                            roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                            //print(Vector3.Distance(tempPosition,currentPosition));
+                        //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
                     }
-                    width/=att_width;
-                    Length/=att_length;
+                    
+                    width*=att_width;
+                    Length-=2;
                     line.transform.parent = currentGO.transform;
                     currentGO = line;
+                    Debug.Log(width);
                     break;
 
                 case EncodingLetters.turnRight:
@@ -154,6 +151,16 @@ public class SimpleVisualizer : MonoBehaviour
 
                 case EncodingLetters.turnLeft:
                     direction = Quaternion.AngleAxis(-angle, Vector3.up) * direction;
+                    break;
+                    
+                case EncodingLetters.turnRightAngle:
+                    
+                    direction = Quaternion.AngleAxis(UnityEngine.Random.Range(90-interv_angle,135+interv_angle), Vector3.up) * direction;
+                    break;
+
+                case EncodingLetters.turnLeftAngle:
+
+                    direction = Quaternion.AngleAxis(-UnityEngine.Random.Range(90-interv_angle,135+interv_angle), Vector3.up) * direction;
                     break;
 
                 case EncodingLetters.turn:
@@ -177,13 +184,12 @@ public class SimpleVisualizer : MonoBehaviour
             }
             foreach (var position in positions)
             {
-                Instantiate(prefab, position, Quaternion.identity);
+                Instantiate(prefab, position, Quaternion.identity).transform.parent = spheres.transform;
             }
         }
 
         Vector3 DetectIntersection(Segment seg1,Vector3 p1)
         {
-            //print("seg:"+ seg1.point1 + seg1.point2);
             Vector3 A = seg1.point1;
             Vector3 B = seg1.point2;
             Vector3 pointInter = new Vector3(0,0,0) ;
@@ -235,7 +241,6 @@ public class SimpleVisualizer : MonoBehaviour
                     else if (t2 == 1) {return D;}
                     else
                     {
-                        //print (new Vector3 (xA+t1*(xB-xA) ,0 , yA+t1*(yB-yA)));
                         return new Vector3 (xA+t1*(xB-xA) ,0 , yA+t1*(yB-yA));
                     }
                 }
@@ -289,7 +294,9 @@ public class SimpleVisualizer : MonoBehaviour
         draw = 'F',
         turnRight = '+',
         turnLeft = '-',
-        turn = 'R'
+        turn = 'R',
+        turnRightAngle = '<',
+        turnLeftAngle = '>'
     }
 
     //Range Angles

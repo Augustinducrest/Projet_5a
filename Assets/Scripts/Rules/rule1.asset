@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   letter: F
   results:
-  - '[RF][RF]'
+  - '[F][RF]'
   - '[-F][+F]'
-  - '[RF][+F]'
-  - '[-F][RF]'
-  - '[-F]'
-  - '[+F]'
+  - '[F][<F][>F]'
+  - '[RF][RF]'
+  - '[F]'
+  - '[F][-F][+F]'
   randomResult: 1
