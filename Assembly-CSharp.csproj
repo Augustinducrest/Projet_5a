@@ -42,8 +42,7 @@
      <Compile Include="Assets\Scripts\LSystemGenerator.cs" />
      <Compile Include="Assets\Scripts\RoadHelper.cs" />
      <Compile Include="Assets\Scripts\SimpleVisualizer.cs" />
-     <Compile Include="Assets\Scripts\Node.cs" />
-     <Compile Include="Assets\Scripts\Graph.cs" />
+     <Compile Include="Assets\Scripts\GenerateBuilding.cs" />
      <None Include="Assets\KajamansRoads\FileNamesDescription.txt" />
      <None Include="Assets\KajamansRoads\Free\ReadMe.txt" />
     <Reference Include="UnityEngine">

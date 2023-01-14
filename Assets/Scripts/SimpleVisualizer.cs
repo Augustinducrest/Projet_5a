@@ -115,6 +115,7 @@ public class SimpleVisualizer : MonoBehaviour
                     length = Length;
                     tempPosition = currentPosition;
                     currentPosition += direction * length;
+                    //r = length/4;
 
                     Segment seg = new Segment(currentPosition,tempPosition);
                     Vector3 pInterseg =DetectIntersection(seg,tempPosition);
@@ -125,24 +126,27 @@ public class SimpleVisualizer : MonoBehaviour
                         currentPosition = pInterseg;
                     } 
                     Vector3 detectedpoint = DetectClosestPoint(currentPosition);
-                    if ( currentPosition == detectedpoint)
+                    int nbrClosePoint = CountNumberClosePoint(currentPosition);
+                    if (nbrClosePoint <4 )
                     {
-                        DrawLine(line,tempPosition, currentPosition, Color.red);
-                        //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                        positions.Add(currentPosition);
-                    }
-                    else
-                    {
-                        currentPosition = detectedpoint;
-                        DrawLine(line,tempPosition, currentPosition, Color.red);
-                        //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
+                        if ( currentPosition == detectedpoint)
+                        {
+                            DrawLine(line,tempPosition, currentPosition, Color.red);
+                            //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
+                            positions.Add(currentPosition);
+                        }
+                        else
+                        {
+                            currentPosition = detectedpoint;
+                            DrawLine(line,tempPosition, currentPosition, Color.red);
+                            //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
+                        }
                     }
                     
                     width*=att_width;
                     Length-=2;
                     line.transform.parent = currentGO.transform;
                     currentGO = line;
-                    Debug.Log(width);
                     break;
 
                 case EncodingLetters.turnRight:
@@ -187,67 +191,68 @@ public class SimpleVisualizer : MonoBehaviour
                 Instantiate(prefab, position, Quaternion.identity).transform.parent = spheres.transform;
             }
         }
-
-        Vector3 DetectIntersection(Segment seg1,Vector3 p1)
+        
+    //Intersections et contacts
+    Vector3 DetectIntersection(Segment seg1,Vector3 p1)
+    {
+        Vector3 A = seg1.point1;
+        Vector3 B = seg1.point2;
+        Vector3 pointInter = new Vector3(0,0,0) ;
+        float minpointInterDist = 1000f;
+        foreach(var seg2 in segments)
         {
-            Vector3 A = seg1.point1;
-            Vector3 B = seg1.point2;
-            Vector3 pointInter = new Vector3(0,0,0) ;
-            float minpointInterDist = 1000f;
-            foreach(var seg2 in segments)
+            Vector3 C = seg2.point1;
+            Vector3 D = seg2.point2;
+            Vector3 p =  CalculeIntersection(A,B,C,D);
+            if( p != new Vector3(0,0,0))
             {
-                Vector3 C = seg2.point1;
-                Vector3 D = seg2.point2;
-                Vector3 p =  CalculeIntersection(A,B,C,D);
-                if( p != new Vector3(0,0,0))
+                float d = Vector3.Distance(p,p1);
+                if(d < minpointInterDist && d > 0.001f)
                 {
-                    float d = Vector3.Distance(p,p1);
-                    if(d < minpointInterDist && d > 0.001f)
-                    {
-                        minpointInterDist = d;
-                        pointInter = p;
-                    }
-                }   
-            }
-            return pointInter;
+                    minpointInterDist = d;
+                    pointInter = p;
+                }
+            }   
         }
+        return pointInter;
+    }
 
-        Vector3 CalculeIntersection(Vector3 A,Vector3 B, Vector3 C,Vector3 D)
+    Vector3 CalculeIntersection(Vector3 A,Vector3 B, Vector3 C,Vector3 D)
+    {
+        float xA = A.x; float yA = A.z;
+        float xB = B.x; float yB = B.z;
+        float xC = C.x; float yC = C.z;
+        float xD = D.x; float yD = D.z;
+
+        float det = ((xB-xA)*(yC-yD)-(xC-xD)*(yB-yA));
+
+        if (det == 0)
         {
-            float xA = A.x; float yA = A.z;
-            float xB = B.x; float yB = B.z;
-            float xC = C.x; float yC = C.z;
-            float xD = D.x; float yD = D.z;
-
-            float det = ((xB-xA)*(yC-yD)-(xC-xD)*(yB-yA));
-
-            if (det == 0)
+            return new Vector3(0,0,0);
+        }
+        else 
+        {
+            float t1 = ((xC-xA)*(yC-yD)-(xC-xD)*(yC-yA))/det;
+            float t2 = ((xB-xA)*(yC-yA)-(xC-xA)*(yB-yA))/det;
+            if(t1 >1 || t1<0 || t2>1 || t2<0 )
             {
                 return new Vector3(0,0,0);
             }
-            else 
+            else
             {
-                float t1 = ((xC-xA)*(yC-yD)-(xC-xD)*(yC-yA))/det;
-                float t2 = ((xB-xA)*(yC-yA)-(xC-xA)*(yB-yA))/det;
-                if(t1 >1 || t1<0 || t2>1 || t2<0 )
-                {
-                    return new Vector3(0,0,0);
-                }
+                if(t1== 0)        {return A;}
+                else if (t1 == 1) {return B;}
+                else if (t2 == 0) {return C;}
+                else if (t2 == 1) {return D;}
                 else
                 {
-                    if(t1== 0)        {return A;}
-                    else if (t1 == 1) {return B;}
-                    else if (t2 == 0) {return C;}
-                    else if (t2 == 1) {return D;}
-                    else
-                    {
-                        return new Vector3 (xA+t1*(xB-xA) ,0 , yA+t1*(yB-yA));
-                    }
+                    return new Vector3 (xA+t1*(xB-xA) ,0 , yA+t1*(yB-yA));
                 }
             }
         }
+    }
 
-        Vector3 DetectClosestPoint(Vector3 pos)
+    Vector3 DetectClosestPoint(Vector3 pos)
         {
             Vector3 closestPoint =new Vector3(0,0,0);
             float closestdist = 100f;
@@ -270,8 +275,20 @@ public class SimpleVisualizer : MonoBehaviour
                 return pos;
             }
         }
-
-        private void DrawLine(GameObject line, Vector3 start, Vector3 end, Color color)
+    private int CountNumberClosePoint(Vector3 pos)
+    {
+        int n = 0;
+        foreach( var point in positions)
+        {
+            float dist = Vector3.Distance(pos , point);
+            if( dist < r )
+            {
+                n += 1;
+            }
+        }
+        return n; 
+    }
+    private void DrawLine(GameObject line, Vector3 start, Vector3 end, Color color)
         {
             line.transform.position = start;
             var lineRenderer = line.AddComponent<LineRenderer>();
@@ -286,6 +303,7 @@ public class SimpleVisualizer : MonoBehaviour
             segments.Add(seg);
         }
 
+    //Encoding
     public enum EncodingLetters
     {
         unknown = '1',
