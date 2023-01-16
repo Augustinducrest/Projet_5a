@@ -12,6 +12,7 @@ using UnityEngine;
 
 		public int angle;
 		public float width;
+		public bool success;
 	}
 
 

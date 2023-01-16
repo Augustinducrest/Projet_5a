@@ -89,6 +89,7 @@ public class SimpleVisualizer : MonoBehaviour
     {
         Stack<AgentParameters> savePoints = new Stack<AgentParameters>();
         var currentPosition = Vector3.zero;
+        bool success = true;
 
         Vector3 direction = Vector3.forward;
         Vector3 tempPosition = Vector3.zero;
@@ -111,7 +112,8 @@ public class SimpleVisualizer : MonoBehaviour
                         position = currentPosition,
                         direction = direction,
                         length = Length,
-                        angle = 180
+                        angle = 180,
+                        success = success
                     });
                     GO.Push(currentGO);
                     break;
@@ -125,6 +127,7 @@ public class SimpleVisualizer : MonoBehaviour
                         direction = agentParameter.direction;
                         Length = agentParameter.length;
                         anglevar = agentParameter.angle;
+                        success = agentParameter.success;
                         currentGO = GO.Pop();
                     }
                     else
@@ -134,20 +137,26 @@ public class SimpleVisualizer : MonoBehaviour
                     break;
 
                 case EncodingLetters.draw:
+                if(success){
                     GameObject line = new GameObject("line"); 
+                    line.transform.parent = currentGO.transform;
+                    currentGO = line;
 
-                    int dist = UnityEngine.Random.Range(minDist,maxDist);
-                    length = dist;
+                    length = UnityEngine.Random.Range(minDist,maxDist);
                     tempPosition = currentPosition;
                     currentPosition += direction * length;
 
+                    //détection intersection
                     Segment seg = new Segment(currentPosition,tempPosition);
-                    Vector3 pInterseg =DetectIntersection(seg,tempPosition);
+                    Vector3 pInterseg = DetectIntersection(seg,tempPosition);
 
                     if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
                     {
                         currentPosition = pInterseg;
-                    } 
+                        success = false;
+                    }
+
+                    //détection point proche
                     Vector3 detectedpoint = DetectClosestPoint(currentPosition);
                     int nbrClosePoint = CountNumberClosePoint(currentPosition);
                     if (nbrClosePoint <4 )
@@ -163,26 +172,29 @@ public class SimpleVisualizer : MonoBehaviour
                             currentPosition = detectedpoint;
                             DrawLine(line,tempPosition, currentPosition, Color.red);
                             roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
+                            success = false;
                         }
                     }
-                    
+
+                    //modification longueur/épaisseur
                     width/=att_width;
                     Length/=att_length;
-                    line.transform.parent = currentGO.transform;
-                    currentGO = line;
+
+                }
+                    
                     break;
 
                 case EncodingLetters.mainRoad:
-
+                if(success){
                     tempPosition = currentPosition;
                     currentPosition += direction * mainLenght;
 
                     Segment mainSeg = new Segment(currentPosition,tempPosition);
-                    Vector3 pIntersegmain =DetectIntersection(mainSeg,tempPosition);
+                    Vector3 pIntersegmain = DetectIntersection(mainSeg,tempPosition);
                     if (pIntersegmain != new Vector3(0,0,0) && pIntersegmain !=  tempPosition )
                     {
-                        //print(pInterseg +"seg:" + seg.point1 + seg.point2);
                         currentPosition = pIntersegmain;
+                        success = false;
                     }
 
                     GameObject mainLine = new GameObject("line"); 
@@ -192,6 +204,7 @@ public class SimpleVisualizer : MonoBehaviour
 
                     mainLine.transform.parent = currentGO.transform;
                     currentGO = mainLine;
+                }
                     break;
 
 
@@ -529,6 +542,9 @@ public class SimpleVisualizer : MonoBehaviour
         }
         
     }
+
+
+
 }
 
 

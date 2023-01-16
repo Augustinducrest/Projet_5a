@@ -24,6 +24,7 @@ using UnityEngine;
 			//Quaternion direction = Quaternion.AngleAxis(angle,new Vector3(0,1,0));
 			float r = UnityEngine.Random.Range(-0.01f,0);
 			var road = Instantiate(roadStraight, middlePosition + new Vector3(0,r,0) , Quaternion.identity);
+			road.transform.parent = transform;
 			road.transform.localScale = new Vector3(0.1f,1.0f,d/10);
 			Quaternion rot  = Quaternion.FromToRotation(new Vector3(0,0,1) ,  endPosition - startPosition);
 			rot.x =0;
@@ -38,6 +39,7 @@ using UnityEngine;
 
 			float r = UnityEngine.Random.Range(0,0.01f);
 			var road = Instantiate(roadDouble, middlePosition + new Vector3(0,r,0) , Quaternion.identity);
+			road.transform.parent = transform;
 			road.transform.localScale = new Vector3(0.2f,1.0f,d/10);
 			
 			Quaternion rot  = Quaternion.FromToRotation(new Vector3(0,0,1) ,  endPosition - startPosition);
