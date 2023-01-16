@@ -8,13 +8,8 @@ public class GenerateBuilding : MonoBehaviour
     public GameObject prefab;
     public GameObject sphere;
     public GameObject image;
-
-
     public GameObject Buildings;
-    [Range(0,5)]
-    public float taille = 3.0f;
-    public float x,z = 0.0f;
-
+    
     private int res = 20;
     private int taille_max = 10;
     private float[,] density_map;
@@ -26,6 +21,7 @@ public class GenerateBuilding : MonoBehaviour
     void Start()
     {
         density_map = new float[res,res];
+
         ///ex
         positions.Add(new Vector3(2.0f,0.0f,2.0f));
         positions.Add(new Vector3(2.0f,0.0f,1.7f));
@@ -73,10 +69,7 @@ public class GenerateBuilding : MonoBehaviour
         
     }
 
-    private static float Remap(float source, float sourceFrom, float sourceTo, float targetFrom, float targetTo)
-    {
-        return targetFrom + (source-sourceFrom)*(targetTo-targetFrom)/(sourceTo-sourceFrom);
-    }
+   
     private void Create_DM(){
         int posX=0;
         int posZ=0;
@@ -160,8 +153,18 @@ public class GenerateBuilding : MonoBehaviour
     }
 
 
-
-
+ //remap entre 2 ranges de nombres
+    private static float Remap(float source, float sourceFrom, float sourceTo, float targetFrom, float targetTo)
+    {
+        return targetFrom + (source-sourceFrom)*(targetTo-targetFrom)/(sourceTo-sourceFrom);
+    }
+  public List<Vector3> Concatenate(List<Vector3> firstList, List<Vector3> secondlist)
+    {
+        var result = new List<Vector3>(firstList.Count + secondlist.Count);
+        result.AddRange(firstList);
+        result.AddRange(secondlist);
+        return result;
+    }
 
 }
 

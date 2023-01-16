@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 public class SimpleVisualizer : MonoBehaviour
 {
@@ -15,6 +15,8 @@ public class SimpleVisualizer : MonoBehaviour
     public GameObject prefab;
     public Material lineMaterial;
     public RoadHelper roadHelper;
+    public GameObject image;
+    public GameObject Buildings;
 
     [Header("Parameters")]
 
@@ -38,7 +40,13 @@ public class SimpleVisualizer : MonoBehaviour
     //private
     List<Vector3> positions = new List<Vector3>();
     List<Segment> segments = new List<Segment>();
+    List<Vector3> batiments;
     private int anglevar = 180;
+    private int res = 20;
+    private int taille_max = 10;
+    private float[,] density_map;
+    private float[] remap;
+
 
     public float Length
     {
@@ -60,6 +68,15 @@ public class SimpleVisualizer : MonoBehaviour
     {
         var sequence = lsystem.Generatesentence();
         VisualizeSequence(sequence);
+
+        //BUILDINGS
+        density_map = new float[res,res];
+        //List<Vector3> ensemble = Concatenate(positions,batiments);
+        remap = MinMaxVect(positions); //on doit utiliser ensemble
+        Create_DM();
+        //CreateBuildings();
+        Texture2D tex = GetTexturefromArray(density_map,res);
+        image.GetComponent<RawImage>().texture = tex;
     }
 
     private void VisualizeSequence(string sequence)
@@ -191,7 +208,7 @@ public class SimpleVisualizer : MonoBehaviour
                 Instantiate(prefab, position, Quaternion.identity).transform.parent = spheres.transform;
             }
         }
-        
+
     //Intersections et contacts
     Vector3 DetectIntersection(Segment seg1,Vector3 p1)
     {
@@ -361,6 +378,162 @@ public class SimpleVisualizer : MonoBehaviour
         }
         
     }
+
+
+//TEST NEW INTERSECTION
+
+    public static bool LineSegmentsIntersection(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vector2 intersection)
+    {
+        intersection = Vector2.zero;
+
+        var d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
+
+        if (d == 0.0f)
+        {
+            return false;
+        }
+
+        var u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d;
+        var v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d;
+
+        if (u < 0.0f || u > 1.0f || v < 0.0f || v > 1.0f)
+        {
+            return false;
+        }
+
+        intersection.x = p1.x + u * (p2.x - p1.x);
+        intersection.y = p1.y + u * (p2.y - p1.y);
+
+        return true;
+    }
+        
+
+//BUILDINGS
+
+    private void CreateBuilding(float taille,Vector3 pos){
+        GameObject Building =new GameObject("Building");
+        Building.transform.parent = Buildings.transform;
+        for (int i =0;i< (int)taille;i++){
+            Instantiate(prefab, pos + Vector3.up*0.5f*i, Quaternion.identity).transform.parent = Building.transform;
+        }
+        
+    }
+
+    private void CreateBuildings(){
+        int posX=0;
+        int posZ=0;
+        foreach (var batiment in batiments)
+        {
+            posX = (int)Remap(batiment.x,remap[0],remap[1],0.0f,res-1);
+            posZ = (int)Remap(batiment.z,remap[2],remap[3],0.0f,res-1);
+            int taille;
+            if(posX>0 || posX<49 || posZ>0 || posZ<49 ){
+                taille = taille_max*(int)(density_map[posX,posZ]);
+            }else{
+                taille = 1;
+            }
+
+            CreateBuilding(taille,batiment);
+        }
+        
+    }
+
+   
+    private void Create_DM(){
+        int posX=0;
+        int posZ=0;
+        float max=0;
+        foreach (var position in positions)
+        {
+            posX = (int)Remap(position.x,remap[0],remap[1],0.0f,res-1.0f);
+            posZ = (int)Remap(position.z,remap[2],remap[3],0.0f,res-1.0f);
+            density_map[posX,posZ] +=1;
+            if(posX<res-1){
+                density_map[posX+1,posZ] +=0.8f;
+            }
+            if(posX>0){
+                density_map[posX-1,posZ] +=0.8f;
+            }
+            if(posZ<res-1){
+                density_map[posX,posZ+1] +=0.8f;
+            }
+            if(posZ>0){
+                density_map[posX,posZ-1] +=0.8f;
+            }
+            if(density_map[posX,posZ]>max){
+                max = density_map[posX,posZ];
+            }
+
+        }
+        //normalisation
+        for(int i=0;i<res;++i){
+            for(int j=0;j<res;++j){
+                density_map[j,i] = density_map[j,i]/max;
+            }
+        }
+    }
+
+    //retourne min/max respectivement en x et z
+    private static float[] MinMaxVect(List<Vector3> list){
+        float min_x = list[0].x;
+        float max_x = list[0].x;
+        float min_z = list[0].z;
+        float max_z = list[0].z;
+        float current_x = 0;
+        float current_z = 0;
+        for(int i=1;i<list.Count;i++)
+        {
+            current_x = list[i].x;
+            current_z = list[i].z;
+            if(min_x>current_x){
+                min_x = current_x;
+            }
+            if(max_x<current_x){
+                max_x = current_x;
+            }
+            if(min_z>current_z){
+                min_z = current_z;
+            }
+            if(max_z<current_z){
+                max_z = current_z;
+            }
+        }
+        float[] values = new float[4] {min_x,max_x,min_z,max_z};
+        return values;
+    }
+
+    public static Texture2D GetTexturefromArray(float[,] array,int res){
+        Texture2D tex = new Texture2D(res,res);
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.filterMode = FilterMode.Point;
+        Color[] colors = new Color[res*res];
+        float value = 0;
+        for(int i=0;i<res;++i){
+            for(int j=0;j<res;++j){
+                value = array[j,i];
+                colors[i*res +j] = new Color(value,value,value,1.0f);   
+            }
+        }
+        tex.SetPixels(colors);
+        tex.Apply();
+        return tex;
+    }
+
+
+ //remap entre 2 ranges de nombres
+    private static float Remap(float source, float sourceFrom, float sourceTo, float targetFrom, float targetTo)
+    {
+        return targetFrom + (source-sourceFrom)*(targetTo-targetFrom)/(sourceTo-sourceFrom);
+    }
+
+    public List<Vector3> Concatenate(List<Vector3> firstList, List<Vector3> secondlist)
+    {
+        var result = new List<Vector3>(firstList.Count + secondlist.Count);
+        result.AddRange(firstList);
+        result.AddRange(secondlist);
+        return result;
+    }
+
 }
 
 
