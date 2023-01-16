@@ -6,10 +6,9 @@ public class BuildingPlacer : MonoBehaviour
 {
     public GameObject buildingPrefab;
     public SimpleVisualizer SV;
-    public GameObject BuildingParent;
+
     
-        
-    public void PlaceBuildingtown(List<Segment> segments)
+    public void PlaceBuildingtown(List<Segment> segments,float[,] dens,float[] rm, int r)
     {
         foreach(var segment in segments)
         {
@@ -62,9 +61,11 @@ public class BuildingPlacer : MonoBehaviour
 
         if(roadCollider.Length == 0 && mainRoadCollider.Length == 0)
         {
-            var building = Instantiate(buildingPrefab,p, rot);
-            building.transform.parent = BuildingParent.transform ;
+            SV.CreateBuilding( p, rot);
+            //var building = Instantiate(buildingPrefab,p, rot);
+            //building.transform.parent = BuildingParent.transform ;
         }
+
         /*else
         {
             foreach (var coll in roadCollider)
@@ -97,6 +98,4 @@ public class BuildingPlacer : MonoBehaviour
         }*/
         
     }
-
-    
 }
