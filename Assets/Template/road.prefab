@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8882737035646880754}
   - component: {fileID: 1791476694014835}
   - component: {fileID: 9149735215935854661}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: road
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -93,6 +93,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}

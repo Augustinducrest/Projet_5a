@@ -16,6 +16,7 @@ public class SimpleVisualizer : MonoBehaviour
     public Material lineMaterial;
     public Material mainLineMaterial;
     public RoadHelper roadHelper;
+    public BuildingPlacer buildingPlacer;
 
     [Header("Parameters")]
 
@@ -36,6 +37,7 @@ public class SimpleVisualizer : MonoBehaviour
     [Range(0.0f,2.0f)]
     public float att_width = 1.0f;
     public float mainLenght = 10;
+    public bool showline =true; 
 
 
     //private
@@ -63,6 +65,11 @@ public class SimpleVisualizer : MonoBehaviour
     {
         var sequence = lsystem.Generatesentence();
         VisualizeSequence(sequence);
+        Invoke("Placetown",1.0f);
+    }
+    public void Placetown()
+    {
+        buildingPlacer.PlaceBuildingtown(segments);
     }
 
     private void VisualizeSequence(string sequence)
@@ -78,7 +85,6 @@ public class SimpleVisualizer : MonoBehaviour
         GameObject spheres = new GameObject("Spheres");
 
         positions.Add(currentPosition);
-
 
         foreach (var letter in sequence)
         {
@@ -205,7 +211,9 @@ public class SimpleVisualizer : MonoBehaviour
             }
             foreach (var position in positions)
             {
-                Instantiate(prefab, position, Quaternion.identity);
+                var sphere  = Instantiate(prefab, position, Quaternion.identity);
+                sphere.transform.parent = currentGO.transform;
+                currentGO = sphere;
             }
         }
 
@@ -234,7 +242,7 @@ public class SimpleVisualizer : MonoBehaviour
             return pointInter;
         }
 
-        Vector3 CalculeIntersection(Vector3 A,Vector3 B, Vector3 C,Vector3 D)
+        public Vector3 CalculeIntersection(Vector3 A,Vector3 B, Vector3 C,Vector3 D)
         {
             float xA = A.x; float yA = A.z;
             float xB = B.x; float yB = B.z;
@@ -328,7 +336,19 @@ public class SimpleVisualizer : MonoBehaviour
             lineRenderer.endWidth = width;
             lineRenderer.SetPosition(0,end);
             lineRenderer.SetPosition(1,start);
-            Segment seg = new Segment(start,end);
+            Segment seg;
+            if (color == Color.blue)
+            {
+                seg = new Segment(start,end,true);
+            }
+            else
+            {
+                seg = new Segment(start,end,false);
+            }
+            if (!showline)
+                    {
+                        line.SetActive(false);
+                    }
             segments.Add(seg);
         }
 
