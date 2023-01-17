@@ -17,6 +17,7 @@ public class SimpleVisualizer : MonoBehaviour
     public RoadHelper roadHelper;
     public GameObject image;
     public GameObject Buildings;
+    public GameObject spheres;
 
     [Header("Parameters")]
 
@@ -29,17 +30,17 @@ public class SimpleVisualizer : MonoBehaviour
     public int interv_angle = 50;
      [Range(0.0f,30.0f)]  
     public float length = 8;
-    [Range(0.0f,2.0f)]
-    public float att_length = 1.0f;
+    [Range(0.0f,1.0f)]
+    public float proba_att_length = 1.0f;
     [Range(0.0f,2.0f)]
     public float width = 1.0f;
-    [Range(0.0f,2.0f)]
-    public float att_width = 1.0f;
 
 
     //private
-    List<Vector3> positions = new List<Vector3>();
-    List<Segment> segments = new List<Segment>();
+    //List<Vector3> positions = new List<Vector3>();
+    //Vector3[] positions;
+    Segment[] segments;
+    int segselect = 0;
     List<Vector3> batiments;
     private int anglevar = 180;
     private int res = 20;
@@ -64,34 +65,54 @@ public class SimpleVisualizer : MonoBehaviour
         set => length = value;
     }
 
+    public float Width
+    {
+        get
+        {
+            if (width > 0)
+            {
+                return width;
+            }
+            else
+            {
+                return 0.1f;
+            }
+        }
+        set => width = value;
+    }
     private void Start()
     {
         var sequence = lsystem.Generatesentence();
+        int N = CalculLength(sequence);
+        segments = new Segment[N];
+        Debug.Log(sequence);
+        Debug.Log(segments.Length);
         VisualizeSequence(sequence);
+        Debug.Log(segselect);
 
         //BUILDINGS
-        density_map = new float[res,res];
-        //List<Vector3> ensemble = Concatenate(positions,batiments);
-        remap = MinMaxVect(positions); //on doit utiliser ensemble
-        Create_DM();
-        //CreateBuildings();
-        Texture2D tex = GetTexturefromArray(density_map,res);
-        image.GetComponent<RawImage>().texture = tex;
+        // density_map = new float[res,res];
+        // //List<Vector3> ensemble = Concatenate(positions,batiments);
+        // remap = MinMaxVect(positions); //on doit utiliser ensemble
+        // Create_DM();
+        // //CreateBuildings();
+        // Texture2D tex = GetTexturefromArray(density_map,res);
+        // image.GetComponent<RawImage>().texture = tex;
     }
 
     private void VisualizeSequence(string sequence)
     {
         Stack<AgentParameters> savePoints = new Stack<AgentParameters>();
         var currentPosition = Vector3.zero;
+        bool success = true;
 
         Vector3 direction = Vector3.forward;
         Vector3 tempPosition = Vector3.zero;
 
         Stack<GameObject> GO = new Stack<GameObject>();
         GameObject currentGO = new GameObject("Lines");
-        GameObject spheres = new GameObject("Spheres");
 
-        positions.Add(currentPosition);
+        //positions.Add(currentPosition);
 
 
         foreach (var letter in sequence)
@@ -106,7 +127,9 @@ public class SimpleVisualizer : MonoBehaviour
                         position = currentPosition,
                         direction = direction,
                         length = Length,
-                        angle = 180
+                        width = Width,
+                        angle = 180,
+                        success = success
                     });
                     GO.Push(currentGO);
                     break;
@@ -119,7 +142,9 @@ public class SimpleVisualizer : MonoBehaviour
                         currentPosition = agentParameter.position;
                         direction = agentParameter.direction;
                         Length = agentParameter.length;
+                        Width = agentParameter.width;
                         anglevar = agentParameter.angle;
+                        success = agentParameter.success;
                         currentGO = GO.Pop();
                     }
                     else
@@ -129,41 +154,29 @@ public class SimpleVisualizer : MonoBehaviour
                     break;
 
                 case EncodingLetters.draw:
-                    length = Length;
-                    tempPosition = currentPosition;
-                    currentPosition += direction * length;
-                    //r = length/4;
-
-                    Segment seg = new Segment(currentPosition,tempPosition);
-                    Vector3 pInterseg =DetectIntersection(seg,tempPosition);
-
-                    GameObject line = new GameObject("line"); 
-                    if (pInterseg != new Vector3(0,0,0) && pInterseg !=  tempPosition )
-                    {
-                        currentPosition = pInterseg;
-                    } 
-                    Vector3 detectedpoint = DetectClosestPoint(currentPosition);
-                    int nbrClosePoint = CountNumberClosePoint(currentPosition);
-                    if (nbrClosePoint <4 )
-                    {
-                        if ( currentPosition == detectedpoint)
-                        {
-                            DrawLine(line,tempPosition, currentPosition, Color.red);
-                            //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                            positions.Add(currentPosition);
+                    if(success){
+                        //width and length
+                        if (UnityEngine.Random.Range(0.0f,1.0f)<proba_att_length){
+                            Length-=1;
+                            Width-=0.05f;
                         }
-                        else
-                        {
-                            currentPosition = detectedpoint;
-                            DrawLine(line,tempPosition, currentPosition, Color.red);
-                            //roadHelper.PlaceStreetPositions(tempPosition,currentPosition);
-                        }
+                        GameObject line = new GameObject("line"); 
+                        line.transform.parent = currentGO.transform;
+                        currentGO = line;
+
+                        tempPosition = currentPosition;
+                        currentPosition += direction * length;
+
+                        //new
+                        Segment seg = new Segment(tempPosition,currentPosition);
+                        // if(Detect(seg)){
+                            
+                        //     success = false;
+                        // }
+                        segments[segselect]=seg;
+                        segselect+=1;
+                        DrawLine(line,seg.point1, seg.point2, Color.red);
                     }
-                    
-                    width*=att_width;
-                    Length-=2;
-                    line.transform.parent = currentGO.transform;
-                    currentGO = line;
                     break;
 
                 case EncodingLetters.turnRight:
@@ -199,112 +212,91 @@ public class SimpleVisualizer : MonoBehaviour
                     direction = Quaternion.AngleAxis(rot, Vector3.up) * direction;
                     break;
 
-                    default:
-                        break;
+                default:
+                    break;
                 }
             }
-            foreach (var position in positions)
+            for(int i=0;i<segselect;++i)
             {
-                Instantiate(prefab, position, Quaternion.identity).transform.parent = spheres.transform;
+                Instantiate(prefab, segments[i].point2, Quaternion.identity).transform.parent = spheres.transform;
             }
         }
 
     //Intersections et contacts
-    Vector3 DetectIntersection(Segment seg1,Vector3 p1)
-    {
-        Vector3 A = seg1.point1;
-        Vector3 B = seg1.point2;
-        Vector3 pointInter = new Vector3(0,0,0) ;
-        float minpointInterDist = 1000f;
-        foreach(var seg2 in segments)
+    private bool Detect(Segment seg1){
+        Vector2 A = new Vector2(seg1.point1.x,seg1.point1.z);
+        Vector2 B = new Vector2(seg1.point2.x,seg1.point2.z);
+        Vector2 joint = Vector2.zero;
+        float mindist = r;
+        for(int i=0;i<segselect;++i)
         {
-            Vector3 C = seg2.point1;
-            Vector3 D = seg2.point2;
-            Vector3 p =  CalculeIntersection(A,B,C,D);
-            if( p != new Vector3(0,0,0))
-            {
-                float d = Vector3.Distance(p,p1);
-                if(d < minpointInterDist && d > 0.001f)
-                {
-                    minpointInterDist = d;
-                    pointInter = p;
+            Segment seg2 = segments[i];
+            Vector2 C = new Vector2(seg2.point1.x,seg2.point1.z);
+            Vector2 D = new Vector2(seg2.point2.x,seg2.point2.z);
+            
+            if((A!=D)&&(A!=C)){ //si pas meme points
+                //intersection
+                if(LineSegmentsIntersection(A,B,C,D, out Vector2 intersection)){
+                    
+                    //verif si pas a coté extremités
+                    if((Vector2.Distance(B , D) < r)){
+                        
+                        seg1.point2.x= D.x;
+                        seg1.point2.z= D.y;
+                        return true;
+                    }
+                    if((Vector2.Distance(B , C) < r)){
+                        
+                        seg1.point2.x= C.x;
+                        seg1.point2.z= C.y;
+                        return true;
+                    }
+                    //
+                    seg1.point2.x= intersection.x;
+                    seg1.point2.z= intersection.y;
+                    return true;
                 }
-            }   
+                //nearest point
+                float dist = Vector2.Distance(B , D);
+                if((dist < mindist)){
+                    joint.x= D.x;
+                    joint.y= D.y;
+                    mindist = dist;
+                    //return true;
+                }
+                //nearest intersection
+                float d = Vector2.Dot(C-D,B-D)/(Mathf.Pow((C.x-D.x),2) + Mathf.Pow((C.y-D.y),2));
+                if((d>0) && (d<1)){
+                    dist = Vector2.Distance(B,joint);
+                    if((dist < mindist)){
+                        joint = D + (C-D)*d;
+                        mindist = dist;
+                        //return true;
+                    }
+                }
+
+
+            }
+            
+           
         }
-        return pointInter;
+        if(mindist!=r){
+            seg1.point2.x= joint.x;
+            seg1.point2.z= joint.y;
+        }
+        return false;
     }
 
-    Vector3 CalculeIntersection(Vector3 A,Vector3 B, Vector3 C,Vector3 D)
-    {
-        float xA = A.x; float yA = A.z;
-        float xB = B.x; float yB = B.z;
-        float xC = C.x; float yC = C.z;
-        float xD = D.x; float yD = D.z;
-
-        float det = ((xB-xA)*(yC-yD)-(xC-xD)*(yB-yA));
-
-        if (det == 0)
-        {
-            return new Vector3(0,0,0);
-        }
-        else 
-        {
-            float t1 = ((xC-xA)*(yC-yD)-(xC-xD)*(yC-yA))/det;
-            float t2 = ((xB-xA)*(yC-yA)-(xC-xA)*(yB-yA))/det;
-            if(t1 >1 || t1<0 || t2>1 || t2<0 )
-            {
-                return new Vector3(0,0,0);
-            }
-            else
-            {
-                if(t1== 0)        {return A;}
-                else if (t1 == 1) {return B;}
-                else if (t2 == 0) {return C;}
-                else if (t2 == 1) {return D;}
-                else
-                {
-                    return new Vector3 (xA+t1*(xB-xA) ,0 , yA+t1*(yB-yA));
-                }
+    private int CalculLength(string sequence){
+        int N = 0;
+        foreach(var st in sequence){
+            if(st == 'F'){
+                N +=1;
             }
         }
+        return N;
     }
 
-    Vector3 DetectClosestPoint(Vector3 pos)
-        {
-            Vector3 closestPoint =new Vector3(0,0,0);
-            float closestdist = 100f;
-
-            foreach( var point in positions)
-            {
-                float distToPoint = Vector3.Distance(pos , point);
-                if ( distToPoint < closestdist)
-                {
-                    closestPoint = point;
-                    closestdist =distToPoint;
-                }
-            }
-            if (closestdist < r)
-            {
-                return closestPoint;
-            }
-            else
-            {
-                return pos;
-            }
-        }
-    private int CountNumberClosePoint(Vector3 pos)
-    {
-        int n = 0;
-        foreach( var point in positions)
-        {
-            float dist = Vector3.Distance(pos , point);
-            if( dist < r )
-            {
-                n += 1;
-            }
-        }
-        return n; 
-    }
     private void DrawLine(GameObject line, Vector3 start, Vector3 end, Color color)
         {
             line.transform.position = start;
@@ -316,8 +308,7 @@ public class SimpleVisualizer : MonoBehaviour
             lineRenderer.endWidth = width;
             lineRenderer.SetPosition(0,end);
             lineRenderer.SetPosition(1,start);
-            Segment seg = new Segment(start,end);
-            segments.Add(seg);
+
         }
 
     //Encoding
@@ -406,6 +397,7 @@ public class SimpleVisualizer : MonoBehaviour
 
         return true;
     }
+
         
 
 //BUILDINGS
@@ -413,6 +405,23 @@ public class SimpleVisualizer : MonoBehaviour
     private void CreateBuilding(float taille,Vector3 pos){
         GameObject Building =new GameObject("Building");
         Building.transform.parent = Buildings.transform;
+        
+        for (int i =0;i< (int)taille;i++){
+            Instantiate(prefab, pos + Vector3.up*0.5f*i, Quaternion.identity).transform.parent = Building.transform;
+        }
+        
+    }
+    private void CreateBuilding(float[,] density_map,Vector3 pos){
+        GameObject Building =new GameObject("Building");
+        Building.transform.parent = Buildings.transform;
+        int posX = (int)Remap(pos.x,remap[0],remap[1],0.0f,res-1);
+        int posZ = (int)Remap(pos.z,remap[2],remap[3],0.0f,res-1);
+        int taille;
+        if(posX>0 || posX<49 || posZ>0 || posZ<49 ){
+            taille = taille_max*(int)(density_map[posX,posZ]);
+        }else{
+            taille = 1;
+        }
         for (int i =0;i< (int)taille;i++){
             Instantiate(prefab, pos + Vector3.up*0.5f*i, Quaternion.identity).transform.parent = Building.transform;
         }
@@ -443,10 +452,10 @@ public class SimpleVisualizer : MonoBehaviour
         int posX=0;
         int posZ=0;
         float max=0;
-        foreach (var position in positions)
+        foreach (var position in segments)
         {
-            posX = (int)Remap(position.x,remap[0],remap[1],0.0f,res-1.0f);
-            posZ = (int)Remap(position.z,remap[2],remap[3],0.0f,res-1.0f);
+            posX = (int)Remap(position.point2.x,remap[0],remap[1],0.0f,res-1.0f);
+            posZ = (int)Remap(position.point2.z,remap[2],remap[3],0.0f,res-1.0f);
             density_map[posX,posZ] +=1;
             if(posX<res-1){
                 density_map[posX+1,posZ] +=0.8f;
@@ -510,8 +519,8 @@ public class SimpleVisualizer : MonoBehaviour
         float value = 0;
         for(int i=0;i<res;++i){
             for(int j=0;j<res;++j){
-                value = array[j,i];
-                colors[i*res +j] = new Color(value,value,value,1.0f);   
+                value = array[i,j];
+                colors[j*res +i] = new Color(value,value,value,1.0f);   
             }
         }
         tex.SetPixels(colors);
@@ -526,13 +535,6 @@ public class SimpleVisualizer : MonoBehaviour
         return targetFrom + (source-sourceFrom)*(targetTo-targetFrom)/(sourceTo-sourceFrom);
     }
 
-    public List<Vector3> Concatenate(List<Vector3> firstList, List<Vector3> secondlist)
-    {
-        var result = new List<Vector3>(firstList.Count + secondlist.Count);
-        result.AddRange(firstList);
-        result.AddRange(secondlist);
-        return result;
-    }
 
 }
 

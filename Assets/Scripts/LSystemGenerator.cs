@@ -10,7 +10,7 @@ using UnityEngine;
 	{
 		public Rule[] rules;
 		public string rootSentence;
-		[Range(0,20)]
+		[Range(0,50)]
 		public int iterationLimit = 1;
 
 		public bool randomIgnoreRuleModifier = true;
@@ -22,7 +22,7 @@ using UnityEngine;
 
 		private void Start()
 		{
-			Debug.Log(Generatesentence());
+			//Debug.Log(Generatesentence());
 		}
 
 		public string Generatesentence(string word = null)

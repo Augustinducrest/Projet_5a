@@ -30,7 +30,7 @@ public class GenerateBuilding : MonoBehaviour
         {
             Instantiate(sphere, position, Quaternion.identity);
         }
-        batiments = new List<Vector3>(){new Vector3(0.5f,0.0f,-3.0f),new Vector3(-2.0f,0.0f,0.0f),new Vector3(2.0f,0.0f,2.0f)};
+        batiments = new List<Vector3>(){new Vector3(0.5f,0.0f,-3.0f),new Vector3(-2.0f,0.0f,0.0f),new Vector3(2.0f,0.0f,2.0f),new Vector3(-5.0f,0.0f,-4.0f)};
         ///
 
         remap = MinMaxVect(positions);
@@ -63,7 +63,8 @@ public class GenerateBuilding : MonoBehaviour
         {
             posX = (int)Remap(batiment.x,remap[0],remap[1],0.0f,res-1);
             posZ = (int)Remap(batiment.z,remap[2],remap[3],0.0f,res-1);
-            int taille = taille_max*(int)(density_map[posX,posZ]);
+            Debug.Log(density_map[posX,posZ]);
+            int taille = (int)(taille_max*(density_map[posX,posZ]));
             CreateBuilding(taille,batiment);
         }
         
@@ -142,9 +143,7 @@ public class GenerateBuilding : MonoBehaviour
         for(int i=0;i<res;++i){
             for(int j=0;j<res;++j){
                 value = array[j,i];
-                colors[i*res +j] = new Color(value,value,value,1.0f);   
-                //colors[i*res +j] = Color.white;
-                Debug.Log(colors[i*res +j]);   
+                colors[i*res +j] = new Color(value,value,value,1.0f);
             }
         }
         tex.SetPixels(colors);
